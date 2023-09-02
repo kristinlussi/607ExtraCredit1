@@ -1,0 +1,162 @@
+---
+title: "DATA 607 Extra Credit #1"
+author: "Kristin Lussi"
+date: "9/3/2023"
+output: html
+editor: visual
+---
+
+## What are the most common symptoms of people with lung cancer?
+
+```{r}
+library(readr)
+library(gt)
+library(dplyr) 
+library(quarto)
+library(ggplot2)
+
+urlfile="https://raw.githubusercontent.com/kristinlussi/607ExtraCredit1/main/survey%20lung%20cancer.csv"
+
+lungcancer<-read_csv(url(urlfile), show_col_types = FALSE)
+```
+
+Here is an overview of the data:
+
+```{r}
+head(lungcancer)
+```
+
+Here we will create subset of the data containing only the individuals who have lung cancer.
+
+```{r}
+cancer <- subset(lungcancer, LUNG_CANCER == "YES")
+head(cancer)
+```
+
+The symptoms that are recorded in this data set are: yellow fingers, fatigue, wheezing, coughing, shortness of breath, difficulty swallowing, and chest pain.
+
+Here, we will calculate the percentage of individuals who suffer from each symptom.
+
+```{r}
+# find number of rows
+rownum <- nrow(cancer)
+
+# find number of individuals who have yellow fingers
+yellowfingers1 <- length(which(cancer$YELLOW_FINGERS==2))
+# find percentage of individuals who have yellow fingers
+yellowfingers <- yellowfingers1 / rownum
+
+# find number of individuals who have fatigue
+fatigue1 <- length(which(cancer$FATIGUE==2))
+# find percentage of individuals who have fatigue
+fatigue <- fatigue1 / rownum
+
+# find number of individuals who have wheezing
+wheezing1 <- length(which(cancer$WHEEZING==2))
+# find percentage of individuals who have wheezing
+wheezing <- wheezing1 / rownum
+
+# find number of individuals who have coughing
+coughing1 <- length(which(cancer$COUGHING==2))
+# find percentage of individuals who have coughing
+coughing <- coughing1 / rownum
+
+# find number of individuals who have shortness of breath
+shortbreath1 <- length(which(cancer$`SHORTNESS OF BREATH`==2))
+# find percentage of individuals who have shortness of breath
+shortbreath <- shortbreath1 / rownum
+
+# find number of individuals who have difficulty swallowing
+swallow1 <- length(which(cancer$`SWALLOWING DIFFICULTY`==2))
+# find percentage of indiviudals who have difficulty swallowing
+swallow <- swallow1 / rownum
+
+# find number of individuals who have chest pain
+chestpain1 <- length(which(cancer$`CHEST PAIN`==2))
+# find percentage of individuals who have chest pain
+chestpain <- chestpain1 / rownum 
+```
+
+Here we will create a table showing the different symptoms and their corresponding percentages.
+
+```{r}
+symptoms <- c("Yellow Fingers", "Fatigue", "Wheezing", "Coughing", "Shortness of Breath", "Difficulty Swallowing", "Chest Pain")
+
+percentages <- c(yellowfingers, fatigue, wheezing, coughing, shortbreath, swallow, chestpain)
+
+symptoms_df <- data.frame(symptoms, percentages)
+
+symptoms_df[, 2] <- round(symptoms_df[, 2], digits = 4) * 100
+
+symptoms_df <- symptoms_df[order(-symptoms_df[, 2]), ]
+
+symptoms_tbl <- gt(symptoms_df)
+
+symptoms_tbl <- 
+  symptoms_tbl |>
+  tab_header(
+    title = md("**Percentage of Individuals with Lung Cancer who have Certain Symptoms**")
+  ) |>
+  cols_label(
+    symptoms = md("**Symptoms**"), percentages = md("**Percentage of Individuals (%)**")
+    )
+
+symptoms_tbl
+```
+
+As you can see from the above table, the most common symptom that people with lung cancer experience is fatigue, with about 70% of individuals experiencing this symptom. The next most common symptom is shortness of breath, with 65.19% of individuals experiencing this symptom. The least common symptom that people with lung cancer experience is difficulty swallowing, with 51.85% of individuals experiencing this symptom. In conclusion, the top 3 most common symptoms for people with lung cancer are fatigue, shortness of breath, and coughing.
+
+Just out of curiosity, let's visualize the symptom occurrence in individuals with lung cancer vs. the symptom occurrence in individuals without lung cancer.
+
+```{r}
+nocancer <- subset(lungcancer, LUNG_CANCER == "NO")
+
+# find number of rows
+rownum <- nrow(nocancer)
+
+# find number of individuals who have yellow fingers
+yellowfingers2 <- length(which(nocancer$YELLOW_FINGERS==2))
+
+# find number of individuals who have fatigue
+fatigue2 <- length(which(nocancer$FATIGUE==2))
+
+# find number of individuals who have wheezing
+wheezing2 <- length(which(nocancer$WHEEZING==2))
+
+# find number of individuals who have coughing
+coughing2 <- length(which(nocancer$COUGHING==2))
+
+# find number of individuals who have shortness of breath
+shortbreath2 <- length(which(nocancer$`SHORTNESS OF BREATH`==2))
+
+# find number of individuals who have difficulty swallowing
+swallow2 <- length(which(nocancer$`SWALLOWING DIFFICULTY`==2))
+
+# find number of individuals who have chest pain
+chestpain2 <- length(which(nocancer$`CHEST PAIN`==2))
+
+# create the data frame
+symptoms <- c("Yellow Fingers", "Fatigue", "Wheezing", "Coughing", "Shortness of Breath", "Difficulty Swallowing", "Chest Pain")
+
+cancercount <- c(yellowfingers1, fatigue1, wheezing1, coughing1, shortbreath1, swallow1, chestpain1)
+
+nocancercount <- c(yellowfingers2, fatigue2, wheezing2, coughing2, shortbreath2, swallow2, chestpain2)
+
+count_df <- data.frame(symptoms, cancercount, nocancercount)
+
+# Reshape the data for plotting
+library(reshape2)
+count_df <- melt(count_df, id.vars = "symptoms")
+
+# Create a bar plot
+ggplot(count_df, aes(x = symptoms, y = value, fill = variable)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Symptom Counts for Individuals with Lung Cancer vs. No Lung Cancer",
+       x = "Symptom",
+       y = "Count of Individuals") +
+  scale_fill_manual(values = c("Lung Cancer" = "red", "No Lung Cancer" = "blue")) +
+  theme_minimal()
+
+```
+
+As you can see, these symptoms are far more common in people with lung cancer. From this table, we can infer that these symptoms are likely caused by lung cancer.
